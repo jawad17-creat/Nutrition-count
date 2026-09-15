@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Journal Nutrition</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#4B6A3E">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nutrition">
+<style>
+  :root{
+    --paper:#F6F4EE;
+    --ink:#20241F;
+    --ink-soft:#5B6158;
+    --line:#DAD6C9;
+    --green:#4B6A3E;
+    --green-deep:#324B29;
+    --clay:#B4693E;
+    --card:#FFFFFF;
+    --danger:#A6432E;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Iowan Old Style', 'Georgia', serif;
+  }
+  .app{
+    max-width:720px;
+    margin:0 auto;
+    padding:28px 18px 80px;
+  }
+  header.top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:14px;
+    margin-bottom:6px;
+  }
+  h1{
+    font-size:26px;
+    margin:0;
+    font-weight:600;
+    letter-spacing:0.2px;
+  }
+  .datebar{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .datebar button{
+    background:none;
+    border:1px solid var(--line);
+    border-radius:6px;
+    width:26px;
+    height:26px;
+    cursor:pointer;
+    color:var(--ink);
+    font-size:14px;
+    line-height:1;
+  }
+  .datebar button:hover{background:var(--line);}
+  .datebar .cur{min-width:100px;text-align:center;}
+
+  .totals{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+    margin:22px 0 28px;
+  }
+  .totals .cell{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 10px;
+    text-align:center;
+  }
+  .totals .cell .num{
+    font-family:'Iowan Old Style', Georgia, serif;
+    font-size:22px;
+    font-weight:600;
+    color:var(--green-deep);
+  }
+  .totals .cell .lbl{
+    font-size:11px;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+
+  .meal-section{margin-bottom:26px;}
+  .meal-title{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:14px;
+    color:var(--ink-soft);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-bottom:1px solid var(--line);
+    padding-bottom:6px;
+    margin-bottom:8px;
+  }
+  .meal-title .add-btn{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    background:var(--green);
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    padding:4px 10px;
+    font-size:12px;
+    cursor:pointer;
+  }
+  .meal-title .add-btn:hover{background:var(--green-deep);}
+
+  .entry{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:9px 2px;
+    border-bottom:1px dashed var(--line);
+    font-size:15px;
+  }
+  .entry:last-child{border-bottom:none;}
+  .entry .name{flex:1;}
+  .entry .qty{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-left:6px;
+  }
+  .entry .kcal{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:13px;
+    color:var(--ink-soft);
+    width:64px;
+    text-align:right;
+  }
+  .entry .del{
+    background:none;
+    border:none;
+    color:var(--danger);
+    cursor:pointer;
+    font-size:16px;
+    margin-left:8px;
+    line-height:1;
+    opacity:0.55;
+  }
+  .entry .del:hover{opacity:1;}
+  .empty-hint{
+    font-family:'Helvetica Neue', Arial, sans-serif;
+    font-size:13px;
+    color:var(--ink-soft);
+    font-style:italic;
+    padding:6px 2px;
+  }
+
+  /* Modal */
+  .overlay{
+    position:fixed;inset:0;
+    background:rgba(32,36,31,0.45);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:50;
+  }
+  .overlay.open{display:flex;}
+  .sheet{
+    background:var(--card);
+    width:100%;
+    max-width:720px;
+    border-radius:16px 16px 0 0;
+    padding:20px 18px 26px;
+    max-height:85vh;
+    overflow-y:auto;
+    font-family:'Helvetica Neue', Arial, sans-serif;
+  }
+  .sheet h2{
+    font-family:'Iowan Old Style', Georgia, serif;
+    font-size:19px;
+    margin:0 0 14px;
+  }
+  .tabs{display:flex;gap:6px;margin-bottom:14px;}
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:8px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    cursor:pointer;
+    font-size:13px;
+    color:var(--ink-soft);
+    background:var(--paper);
+  }
+  .tab.active{
+    background:var(--green);
+    color:#fff;
+    border-color:var(--green);
+  }
+  .field{margin-bottom:12px;}
+  .field label{
+    display:block;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+  }
+  .field input{
+    width:100%;
+    padding:9px 10px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    font-size:15px;
+    font-family:inherit;
+    background:var(--paper);
+    color:var(--ink);
+  }
+  .field input:focus{outline:2px solid var(--green);outline-offset:0;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .row4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  .search-results{margin-top:10px;}
+  .result{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px 8px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    margin-bottom:6px;
+    cursor:pointer;
+    font-size:13px;
+  }
+  .result:hover{border-color:var(--green);}
+  .result .r-name{flex:1;padding-right:8px;}
+  .result .r-kcal{color:var(--ink-soft);font-size:12px;white-space:nowrap;}
+  .status{
+    font-size:12px;
+    color:var(--ink-soft);
+    padding:6px 0;
+  }
+  .primary-btn{
+    width:100%;
+    background:var(--green);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    padding:12px;
+    font-size:15px;
+    cursor:pointer;
+    margin-top:6px;
+    font-family:inherit;
+  }
+  .primary-btn:hover{background:var(--green-deep);}
+  .primary-btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .close-x{
+    float:right;
+    background:none;
+    border:none;
+    font-size:20px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    line-height:1;
+  }
+  .note{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    margin-top:16px;
+    padding-top:12px;
+    border-top:1px solid var(--line);
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1>Journal Nutrition</h1>
+    <div class="datebar">
+      <button id="prevDay">‹</button>
+      <span class="cur" id="curDate">—</span>
+      <button id="nextDay">›</button>
+    </div>
+  </header>
+
+  <div class="totals" id="totals">
+    <div class="cell"><div class="num" id="totKcal">0</div><div class="lbl">kcal</div></div>
+    <div class="cell"><div class="num" id="totProt">0g</div><div class="lbl">protéines</div></div>
+    <div class="cell"><div class="num" id="totCarb">0g</div><div class="lbl">glucides</div></div>
+    <div class="cell"><div class="num" id="totFat">0g</div><div class="lbl">lipides</div></div>
+  </div>
+
+  <div id="meals"></div>
+
+  <div class="note">
+    Recherche d'aliments via Open Food Facts (base libre et gratuite) — pas de reconnaissance photo automatique, qui nécessiterait un service payant. La saisie manuelle reste toujours disponible si un aliment n'est pas trouvé.
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <button class="close-x" id="closeSheet">×</button>
+    <h2 id="sheetTitle">Ajouter un aliment</h2>
+    <div class="tabs">
+      <div class="tab active" id="tabSearch">Rechercher</div>
+      <div class="tab" id="tabManual">Saisie manuelle</div>
+    </div>
+
+    <div id="panelSearch">
+      <div class="field">
+        <label>Nom de l'aliment (ex. riz blanc, poulet rôti, yaourt nature)</label>
+        <input type="text" id="searchInput" placeholder="Rechercher...">
+      </div>
+      <div class="status" id="searchStatus"></div>
+      <div class="search-results" id="searchResults"></div>
+    </div>
+
+    <div id="panelManual" style="display:none;">
+      <div class="field">
+        <label>Nom</label>
+        <input type="text" id="manName" placeholder="Ex. sandwich thon maison">
+      </div>
+      <div class="field">
+        <label>Quantité (g ou ml)</label>
+        <input type="number" id="manQty" value="100">
+      </div>
+      <div class="row4">
+        <div class="field"><label>Kcal</label><input type="number" id="manKcal"></div>
+        <div class="field"><label>Prot. (g)</label><input type="number" id="manProt"></div>
+        <div class="field"><label>Gluc. (g)</label><input type="number" id="manCarb"></div>
+        <div class="field"><label>Lip. (g)</label><input type="number" id="manFat"></div>
+      </div>
+      <button class="primary-btn" id="manAddBtn">Ajouter au journal</button>
+    </div>
+
+    <div id="qtyStep" style="display:none;">
+      <div class="field">
+        <label id="chosenName">Aliment sélectionné</label>
+        <input type="number" id="chosenQty" value="100">
+        <label style="margin-top:4px;">grammes (valeurs pour 100g : <span id="chosenPer100"></span>)</label>
+      </div>
+      <button class="primary-btn" id="confirmQtyBtn">Ajouter au journal</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const MEALS = [
+  {key:'petit-dej', label:'Petit-déjeuner'},
+  {key:'dejeuner', label:'Déjeuner'},
+  {key:'diner', label:'Dîner'},
+  {key:'collation', label:'Collations'}
+];
+
+let currentDate = new Date();
+let activeMeal = null;
+let selectedProduct = null;
+
+function dateKey(d){
+  return d.toISOString().slice(0,10);
+}
+function storageKey(d){
+  return 'log:' + dateKey(d);
+}
+function fmtDate(d){
+  return d.toLocaleDateString('fr-FR', {weekday:'short', day:'numeric', month:'short'});
+}
+
+async function storageGet(key){
+  if(window.storage && typeof window.storage.get === 'function'){
+    try{
+      const r = await window.storage.get(key, false);
+      return r ? r.value : null;
+    }catch(e){
+      return null;
+    }
+  }
+  try{
+    return localStorage.getItem(key);
+  }catch(e){
+    return null;
+  }
+}
+async function storageSet(key, value){
+  if(window.storage && typeof window.storage.set === 'function'){
+    try{
+      await window.storage.set(key, value, false);
+      return;
+    }catch(e){
+      // continue to localStorage fallback below
+    }
+  }
+  try{
+    localStorage.setItem(key, value);
+  }catch(e){
+    console.error('Sauvegarde impossible', e);
+  }
+}
+
+async function loadLog(){
+  const raw = await storageGet(storageKey(currentDate));
+  return raw ? JSON.parse(raw) : [];
+}
+async function saveLog(entries){
+  await storageSet(storageKey(currentDate), JSON.stringify(entries));
+}
+
+async function render(){
+  document.getElementById('curDate').textContent = fmtDate(currentDate);
+  const entries = await loadLog();
+
+  let tKcal=0,tProt=0,tCarb=0,tFat=0;
+  entries.forEach(e=>{
+    tKcal += e.kcal; tProt += e.prot; tCarb += e.carb; tFat += e.fat;
+  });
+  document.getElementById('totKcal').textContent = Math.round(tKcal);
+  document.getElementById('totProt').textContent = Math.round(tProt)+'g';
+  document.getElementById('totCarb').textContent = Math.round(tCarb)+'g';
+  document.getElementById('totFat').textContent = Math.round(tFat)+'g';
+
+  const mealsDiv = document.getElementById('meals');
+  mealsDiv.innerHTML = '';
+  MEALS.forEach(m=>{
+    const section = document.createElement('div');
+    section.className = 'meal-section';
+    const list = entries.filter(e=>e.meal===m.key);
+    section.innerHTML = `
+      <div class="meal-title">
+        <span>${m.label}</span>
+        <button class="add-btn" data-meal="${m.key}">+ Ajouter</button>
+      </div>
+      <div class="entries" id="entries-${m.key}"></div>
+    `;
+    mealsDiv.appendChild(section);
+    const entriesDiv = section.querySelector(`#entries-${m.key}`);
+    if(list.length===0){
+      entriesDiv.innerHTML = '<div class="empty-hint">Rien enregistré</div>';
+    }else{
+      list.forEach(e=>{
+        const row = document.createElement('div');
+        row.className = 'entry';
+        row.innerHTML = `
+          <span class="name">${e.name}<span class="qty">${e.qty}g</span></span>
+          <span class="kcal">${Math.round(e.kcal)} kcal</span>
+          <button class="del" data-id="${e.id}">×</button>
+        `;
+        entriesDiv.appendChild(row);
+      });
+    }
+  });
+
+  mealsDiv.querySelectorAll('.add-btn').forEach(btn=>{
+    btn.onclick = ()=>openSheet(btn.dataset.meal);
+  });
+  mealsDiv.querySelectorAll('.del').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const entries2 = await loadLog();
+      const filtered = entries2.filter(e=>e.id !== btn.dataset.id);
+      await saveLog(filtered);
+      render();
+    };
+  });
+}
+
+document.getElementById('prevDay').onclick = ()=>{
+  currentDate.setDate(currentDate.getDate()-1);
+  render();
+};
+document.getElementById('nextDay').onclick = ()=>{
+  currentDate.setDate(currentDate.getDate()+1);
+  render();
+};
+
+// Sheet / modal logic
+const overlay = document.getElementById('overlay');
+function openSheet(mealKey){
+  activeMeal = mealKey;
+  document.getElementById('sheetTitle').textContent = 'Ajouter — ' + MEALS.find(m=>m.key===mealKey).label;
+  overlay.classList.add('open');
+  showSearchTab();
+  document.getElementById('searchInput').value='';
+  document.getElementById('searchResults').innerHTML='';
+  document.getElementById('searchStatus').textContent='';
+}
+document.getElementById('closeSheet').onclick = ()=>{
+  overlay.classList.remove('open');
+};
+
+function showSearchTab(){
+  document.getElementById('tabSearch').classList.add('active');
+  document.getElementById('tabManual').classList.remove('active');
+  document.getElementById('panelSearch').style.display='block';
+  document.getElementById('panelManual').style.display='none';
+  document.getElementById('qtyStep').style.display='none';
+}
+function showManualTab(){
+  document.getElementById('tabManual').classList.add('active');
+  document.getElementById('tabSearch').classList.remove('active');
+  document.getElementById('panelManual').style.display='block';
+  document.getElementById('panelSearch').style.display='none';
+  document.getElementById('qtyStep').style.display='none';
+}
+document.getElementById('tabSearch').onclick = showSearchTab;
+document.getElementById('tabManual').onclick = showManualTab;
+
+// Base locale d'aliments courants (pour 100g/100ml) — fonctionne sans connexion,
+// utile car les requêtes réseau peuvent être bloquées quand le fichier est ouvert en local.
+const LOCAL_FOODS = [
+  {name:'Frites (cuites au four)', kcal:230, prot:3.4, carb:33, fat:9},
+  {name:'Frites (friture)', kcal:312, prot:3.6, carb:41, fat:15},
+  {name:'Jus de pomme', kcal:46, prot:0.1, carb:11.3, fat:0.1},
+  {name:'Jus d\'orange', kcal:45, prot:0.7, carb:10.4, fat:0.2},
+  {name:'Pomme', kcal:52, prot:0.3, carb:14, fat:0.2},
+  {name:'Banane', kcal:89, prot:1.1, carb:23, fat:0.3},
+  {name:'Riz blanc cuit', kcal:130, prot:2.7, carb:28, fat:0.3},
+  {name:'Riz complet cuit', kcal:123, prot:2.7, carb:26, fat:1},
+  {name:'Pâtes cuites', kcal:158, prot:5.8, carb:31, fat:0.9},
+  {name:'Pain blanc', kcal:265, prot:9, carb:49, fat:3.2},
+  {name:'Pain complet', kcal:247, prot:13, carb:41, fat:3.4},
+  {name:'Poulet rôti (sans peau)', kcal:165, prot:31, carb:0, fat:3.6},
+  {name:'Boeuf haché (15% MG)', kcal:212, prot:19, carb:0, fat:15},
+  {name:'Poisson blanc (cabillaud)', kcal:82, prot:18, carb:0, fat:0.7},
+  {name:'Thon (conserve, égoutté)', kcal:116, prot:26, carb:0, fat:1},
+  {name:'Oeuf entier', kcal:143, prot:13, carb:1.1, fat:9.5},
+  {name:'Lait demi-écrémé', kcal:46, prot:3.3, carb:4.8, fat:1.6},
+  {name:'Yaourt nature', kcal:61, prot:3.5, carb:4.7, fat:3.3},
+  {name:'Fromage blanc', kcal:75, prot:8, carb:4, fat:3},
+  {name:'Avocat', kcal:160, prot:2, carb:9, fat:15},
+  {name:'Tomate', kcal:18, prot:0.9, carb:3.9, fat:0.2},
+  {name:'Carotte', kcal:41, prot:0.9, carb:10, fat:0.2},
+  {name:'Pomme de terre (bouillie)', kcal:87, prot:1.9, carb:20, fat:0.1},
+  {name:'Haricots rouges (cuits)', kcal:127, prot:8.7, carb:23, fat:0.5},
+  {name:'Lentilles cuites', kcal:116, prot:9, carb:20, fat:0.4},
+  {name:'Huile d\'olive', kcal:884, prot:0, carb:0, fat:100},
+  {name:'Beurre', kcal:717, prot:0.9, carb:0.1, fat:81},
+  {name:'Sucre blanc', kcal:387, prot:0, carb:100, fat:0},
+  {name:'Chocolat noir', kcal:546, prot:4.9, carb:61, fat:31},
+  {name:'Amandes', kcal:579, prot:21, carb:22, fat:50},
+  {name:'Cacahuètes', kcal:567, prot:26, carb:16, fat:49},
+  {name:'Pizza (margherita)', kcal:266, prot:11, carb:33, fat:10},
+  {name:'Sandwich jambon-beurre', kcal:280, prot:12, carb:35, fat:10},
+  {name:'Croissant', kcal:406, prot:8.2, carb:45, fat:21},
+  {name:'Coca-Cola', kcal:42, prot:0, carb:10.6, fat:0},
+  {name:'Eau', kcal:0, prot:0, carb:0, fat:0},
+  {name:'Café noir', kcal:1, prot:0.1, carb:0, fat:0},
+  {name:'Manioc bouilli', kcal:112, prot:1.4, carb:27, fat:0.3},
+  {name:'Fruit à pain', kcal:103, prot:1.1, carb:27, fat:0.2},
+  {name:'Ambrevades / pois d\'Angole cuits', kcal:121, prot:7.3, carb:20, fat:0.7}
+];
+
+function searchLocal(query){
+  const q = query.toLowerCase();
+  return LOCAL_FOODS.filter(f => f.name.toLowerCase().includes(q));
+}
+
+let searchTimeout = null;
+document.getElementById('searchInput').addEventListener('input', (e)=>{
+  clearTimeout(searchTimeout);
+  const q = e.target.value.trim();
+  if(q.length < 2){
+    document.getElementById('searchResults').innerHTML='';
+    document.getElementById('searchStatus').textContent='';
+    return;
+  }
+  document.getElementById('searchStatus').textContent = 'Recherche…';
+  searchTimeout = setTimeout(()=>doSearch(q), 450);
+});
+
+function renderLocalResults(matches, resultsEl){
+  matches.forEach(f=>{
+    const div = document.createElement('div');
+    div.className='result';
+    div.innerHTML = `
+      <span class="r-name">${f.name}</span>
+      <span class="r-kcal">${Math.round(f.kcal)} kcal/100g</span>
+    `;
+    div.onclick = ()=>selectProduct(f.name, {
+      'energy-kcal_100g': f.kcal,
+      'proteins_100g': f.prot,
+      'carbohydrates_100g': f.carb,
+      'fat_100g': f.fat
+    });
+    resultsEl.appendChild(div);
+  });
+}
+
+async function doSearch(query){
+  const statusEl = document.getElementById('searchStatus');
+  const resultsEl = document.getElementById('searchResults');
+  resultsEl.innerHTML='';
+
+  // 1. Base locale — toujours disponible, aucune dépendance réseau
+  const localMatches = searchLocal(query);
+  if(localMatches.length){
+    renderLocalResults(localMatches, resultsEl);
+  }
+
+  // 2. Complément en ligne (Open Food Facts) si le réseau le permet
+  statusEl.textContent = localMatches.length
+    ? localMatches.length + ' résultat(s) locaux · recherche en ligne…'
+    : 'Recherche en ligne…';
+  try{
+    const url = 'https://fr.openfoodfacts.org/cgi/search.pl?search_terms=' +
+      encodeURIComponent(query) +
+      '&search_simple=1&action=process&json=1&page_size=10&fields=product_name,nutriments,brands';
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('network');
+    const data = await res.json();
+    const products = (data.products || []).filter(p =>
+      p.product_name && p.nutriments && p.nutriments['energy-kcal_100g'] != null
+    );
+    products.slice(0,10).forEach(p=>{
+      const n = p.nutriments;
+      const div = document.createElement('div');
+      div.className='result';
+      const brand = p.brands ? ' · ' + p.brands.split(',')[0] : '';
+      div.innerHTML = `
+        <span class="r-name">${p.product_name}${brand}</span>
+        <span class="r-kcal">${Math.round(n['energy-kcal_100g'])} kcal/100g</span>
+      `;
+      div.onclick = ()=>selectProduct(p.product_name, n);
+      resultsEl.appendChild(div);
+    });
+    const total = localMatches.length + products.length;
+    statusEl.textContent = total ? total + ' résultat(s) au total' : 'Aucun résultat — essayez la saisie manuelle.';
+  }catch(err){
+    statusEl.textContent = localMatches.length
+      ? localMatches.length + ' résultat(s) locaux (recherche en ligne indisponible ici)'
+      : 'Aucun résultat local, recherche en ligne indisponible — essayez la saisie manuelle.';
+  }
+}
+
+function selectProduct(name, n){
+  selectedProduct = {
+    name,
+    kcal100: n['energy-kcal_100g'] || 0,
+    prot100: n['proteins_100g'] || 0,
+    carb100: n['carbohydrates_100g'] || 0,
+    fat100: n['fat_100g'] || 0
+  };
+  document.getElementById('panelSearch').style.display='none';
+  document.getElementById('panelManual').style.display='none';
+  document.getElementById('qtyStep').style.display='block';
+  document.getElementById('chosenName').textContent = name;
+  document.getElementById('chosenPer100').textContent =
+    Math.round(selectedProduct.kcal100)+' kcal, '+
+    Math.round(selectedProduct.prot100)+'g prot, '+
+    Math.round(selectedProduct.carb100)+'g gluc, '+
+    Math.round(selectedProduct.fat100)+'g lip';
+  document.getElementById('chosenQty').value = 100;
+}
+
+document.getElementById('confirmQtyBtn').onclick = async ()=>{
+  const qty = parseFloat(document.getElementById('chosenQty').value) || 0;
+  const factor = qty/100;
+  const entry = {
+    id: Date.now().toString(36),
+    meal: activeMeal,
+    name: selectedProduct.name,
+    qty,
+    kcal: selectedProduct.kcal100 * factor,
+    prot: selectedProduct.prot100 * factor,
+    carb: selectedProduct.carb100 * factor,
+    fat: selectedProduct.fat100 * factor
+  };
+  const entries = await loadLog();
+  entries.push(entry);
+  await saveLog(entries);
+  overlay.classList.remove('open');
+  render();
+};
+
+document.getElementById('manAddBtn').onclick = async ()=>{
+  const name = document.getElementById('manName').value.trim();
+  const qty = parseFloat(document.getElementById('manQty').value) || 0;
+  const kcal = parseFloat(document.getElementById('manKcal').value) || 0;
+  const prot = parseFloat(document.getElementById('manProt').value) || 0;
+  const carb = parseFloat(document.getElementById('manCarb').value) || 0;
+  const fat = parseFloat(document.getElementById('manFat').value) || 0;
+  if(!name){ return; }
+  const entry = {
+    id: Date.now().toString(36),
+    meal: activeMeal, name, qty, kcal, prot, carb, fat
+  };
+  const entries = await loadLog();
+  entries.push(entry);
+  await saveLog(entries);
+  overlay.classList.remove('open');
+  ['manName','manQty','manKcal','manProt','manCarb','manFat'].forEach(id=>{
+    document.getElementById(id).value = id==='manQty' ? 100 : '';
+  });
+  render();
+};
+
+render();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
