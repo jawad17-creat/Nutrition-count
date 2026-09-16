@@ -288,30 +288,106 @@
     padding-top:12px;
     border-top:1px solid var(--line);
   }
+
+  .main-tabs{display:flex;gap:6px;margin:14px 0 18px;font-family:'Helvetica Neue', Arial, sans-serif;}
+  .main-tab{
+    flex:1;text-align:center;padding:9px 6px;border:1px solid var(--line);
+    border-radius:9px;cursor:pointer;font-size:13px;color:var(--ink-soft);background:#fff;
+  }
+  .main-tab.active{background:var(--green);color:#fff;border-color:var(--green);}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:14px;margin-bottom:18px;font-family:'Helvetica Neue', Arial, sans-serif;
+  }
+  .card h3{margin:0 0 10px;font-size:14px;color:var(--ink-soft);font-weight:600;}
+
+  .hydro-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:14px;font-weight:600;}
+  .hydro-buttons{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+  .hydro-buttons button{
+    flex:1;min-width:70px;background:#EAF2E4;border:1px solid var(--green);color:var(--green-deep);
+    border-radius:8px;padding:8px 4px;font-size:12.5px;cursor:pointer;
+  }
+  .hydro-buttons button:hover{background:var(--green);color:#fff;}
+  .hydro-custom{display:flex;gap:8px;margin-bottom:6px;}
+  .hydro-custom input{flex:1;padding:7px 8px;border:1px solid var(--line);border-radius:8px;font-family:inherit;}
+  .hydro-custom button{
+    background:var(--green);color:#fff;border:none;border-radius:8px;padding:0 14px;font-size:13px;cursor:pointer;
+  }
+
+  .unit-row{display:flex;gap:8px;margin:10px 0 0;align-items:center;}
+  .unit-row select{flex:1.4;padding:8px;border:1px solid var(--line);border-radius:8px;font-family:inherit;background:#fff;}
+  .unit-row input{width:56px;padding:8px;border:1px solid var(--line);border-radius:8px;font-family:inherit;}
+  .unit-apply-btn{
+    background:var(--green-deep);color:#fff;border:none;border-radius:8px;padding:0 10px;font-size:12px;cursor:pointer;height:37px;
+  }
+
+  .cf-row{display:flex;justify-content:space-between;align-items:center;padding:10px 2px;border-bottom:1px dashed var(--line);}
+  .cf-row .cf-name{font-size:14px;}
+  .cf-row .cf-meta{font-size:11px;color:var(--ink-soft);}
+  .cf-actions{display:flex;gap:6px;}
+  .cf-actions button{
+    border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:7px;padding:5px 8px;font-size:11.5px;cursor:pointer;
+  }
+  .cf-actions button.del{color:var(--danger);}
 </style>
 </head>
 <body>
 <div class="app">
   <header class="top">
     <h1>Journal Nutrition</h1>
-    <div class="datebar">
+  </header>
+
+  <div class="main-tabs">
+    <div class="main-tab active" data-view="journal">Journal</div>
+    <div class="main-tab" data-view="mesaliments">Mes aliments</div>
+  </div>
+
+  <div class="view active" id="view-journal">
+    <div class="datebar" style="justify-content:center;margin-bottom:16px;">
       <button id="prevDay">‹</button>
       <span class="cur" id="curDate">—</span>
       <button id="nextDay">›</button>
     </div>
-  </header>
 
-  <div class="totals" id="totals">
-    <div class="cell"><div class="num" id="totKcal">0</div><div class="lbl">kcal</div></div>
-    <div class="cell"><div class="num" id="totProt">0g</div><div class="lbl">protéines</div></div>
-    <div class="cell"><div class="num" id="totCarb">0g</div><div class="lbl">glucides</div></div>
-    <div class="cell"><div class="num" id="totFat">0g</div><div class="lbl">lipides</div></div>
+    <div class="totals" id="totals">
+      <div class="cell"><div class="num" id="totKcal">0</div><div class="lbl">kcal</div></div>
+      <div class="cell"><div class="num" id="totProt">0g</div><div class="lbl">protéines</div></div>
+      <div class="cell"><div class="num" id="totCarb">0g</div><div class="lbl">glucides</div></div>
+      <div class="cell"><div class="num" id="totFat">0g</div><div class="lbl">lipides</div></div>
+    </div>
+
+    <div class="card">
+      <h3>Répartition des macros</h3>
+      <div id="macroChartWrap"><div class="empty-hint">Pas encore de données ce jour</div></div>
+    </div>
+
+    <div class="card">
+      <div class="hydro-head"><span>💧 Hydratation</span><span id="waterTotal">0 ml</span></div>
+      <div class="hydro-buttons">
+        <button type="button" data-ml="200">+200ml</button>
+        <button type="button" data-ml="330">+330ml</button>
+        <button type="button" data-ml="500">+500ml</button>
+      </div>
+      <div class="hydro-custom">
+        <input type="number" id="waterCustomMl" placeholder="Autre quantité (ml)">
+        <button type="button" id="waterCustomAdd">Ajouter</button>
+      </div>
+      <div id="waterEntries"></div>
+    </div>
+
+    <div id="meals"></div>
+
+    <div class="note">
+      Recherche d'aliments via Open Food Facts (base libre et gratuite), complétée par la base mondiale si besoin — pas de reconnaissance photo automatique, qui nécessiterait un service payant. La saisie manuelle reste toujours disponible si un aliment n'est pas trouvé, et elle est désormais sauvegardée automatiquement dans "Mes aliments".
+    </div>
   </div>
 
-  <div id="meals"></div>
-
-  <div class="note">
-    Recherche d'aliments via Open Food Facts (base libre et gratuite) — pas de reconnaissance photo automatique, qui nécessiterait un service payant. La saisie manuelle reste toujours disponible si un aliment n'est pas trouvé.
+  <div class="view" id="view-mesaliments">
+    <button class="primary-btn" id="openNewCustomFood" style="margin-bottom:16px;">+ Nouvel aliment</button>
+    <div id="customFoodsList"></div>
   </div>
 </div>
 
@@ -357,9 +433,36 @@
         <div class="portion-row" id="portionButtons"></div>
         <input type="number" id="chosenQty" value="100">
         <label style="margin-top:4px;">grammes (valeurs pour 100g : <span id="chosenPer100"></span>)</label>
+        <div class="unit-row">
+          <select id="unitSelect">
+            <option value="g">Grammes</option>
+            <option value="serving">Portion (serving)</option>
+            <option value="cup">Tasse (cup, ≈240g)</option>
+            <option value="tbsp">Cuillère à soupe (≈15g)</option>
+            <option value="tsp">Cuillère à café (≈5g)</option>
+          </select>
+          <input type="number" id="unitQty" value="1">
+          <button type="button" class="unit-apply-btn" id="unitApplyBtn">Appliquer</button>
+        </div>
       </div>
       <button class="primary-btn" id="confirmQtyBtn">Ajouter au journal</button>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="customFoodOverlay">
+  <div class="sheet">
+    <button class="close-x" id="closeCustomFoodSheet">×</button>
+    <h2 id="cfSheetTitle">Nouvel aliment</h2>
+    <div class="field"><label>Nom</label><input type="text" id="cfName" placeholder="Ex. Croque-monsieur maison"></div>
+    <div class="row4">
+      <div class="field"><label>Kcal /100g</label><input type="number" id="cfKcal"></div>
+      <div class="field"><label>Prot. /100g</label><input type="number" id="cfProt"></div>
+      <div class="field"><label>Gluc. /100g</label><input type="number" id="cfCarb"></div>
+      <div class="field"><label>Lip. /100g</label><input type="number" id="cfFat"></div>
+    </div>
+    <div class="field"><label>Portion par défaut (g, optionnel)</label><input type="number" id="cfServing"></div>
+    <button class="primary-btn" id="cfSaveBtn">Enregistrer</button>
   </div>
 </div>
 
@@ -424,6 +527,171 @@ async function saveLog(entries){
   await storageSet(storageKey(currentDate), JSON.stringify(entries));
 }
 
+// ---------- Aliments personnels ("Mes aliments") ----------
+async function loadCustomFoods(){
+  const raw = await storageGet('custom-foods');
+  return raw ? JSON.parse(raw) : [];
+}
+async function saveCustomFoods(list){
+  await storageSet('custom-foods', JSON.stringify(list));
+}
+async function upsertCustomFood(name, per100, servingGrams){
+  const list = await loadCustomFoods();
+  const idx = list.findIndex(f=>f.name.toLowerCase()===name.toLowerCase());
+  const rec = { name, kcal100:per100.kcal100, prot100:per100.prot100, carb100:per100.carb100, fat100:per100.fat100, servingGrams: servingGrams||null };
+  if(idx>=0) list[idx] = rec; else list.push(rec);
+  await saveCustomFoods(list);
+}
+
+// ---------- Hydratation ----------
+function waterKey(d){ return 'water:' + dateKey(d); }
+async function loadWater(d){
+  const raw = await storageGet(waterKey(d));
+  return raw ? JSON.parse(raw) : [];
+}
+async function saveWater(d, entries){
+  await storageSet(waterKey(d), JSON.stringify(entries));
+}
+async function renderHydration(){
+  const entries = await loadWater(currentDate);
+  const total = entries.reduce((s,e)=>s+e.ml,0);
+  document.getElementById('waterTotal').textContent = total + ' ml';
+  const el = document.getElementById('waterEntries');
+  if(entries.length===0){ el.innerHTML=''; return; }
+  el.innerHTML = entries.map(e=>`
+    <div class="entry"><span class="name">Eau</span><span class="kcal">${e.ml} ml</span><button class="del" data-wid="${e.id}">×</button></div>
+  `).join('');
+  el.querySelectorAll('.del').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const entries2 = await loadWater(currentDate);
+      await saveWater(currentDate, entries2.filter(x=>x.id!==btn.dataset.wid));
+      renderHydration();
+    };
+  });
+}
+async function addWater(ml){
+  if(!ml || ml<=0) return;
+  const entries = await loadWater(currentDate);
+  entries.push({id:Date.now().toString(36), ml});
+  await saveWater(currentDate, entries);
+  renderHydration();
+}
+
+// ---------- Graphique macros (donut) ----------
+function renderMacroChart(tProt, tCarb, tFat){
+  const kcalProt = tProt*4, kcalCarb = tCarb*4, kcalFat = tFat*9;
+  const total = kcalProt + kcalCarb + kcalFat;
+  const el = document.getElementById('macroChartWrap');
+  if(total <= 0){
+    el.innerHTML = '<div class="empty-hint">Pas encore de données ce jour</div>';
+    return;
+  }
+  const pCarb = kcalCarb/total*100, pProt = kcalProt/total*100, pFat = kcalFat/total*100;
+  const bg = `conic-gradient(#E8C547 0% ${pCarb}%, #4B6A3E ${pCarb}% ${pCarb+pProt}%, #8E6FB0 ${pCarb+pProt}% 100%)`;
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:18px;">
+      <div style="width:104px;height:104px;border-radius:50%;background:${bg};position:relative;flex-shrink:0;">
+        <div style="position:absolute;inset:17px;background:var(--card);border-radius:50%;"></div>
+      </div>
+      <div style="font-size:12.5px;flex:1;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;"><span style="width:10px;height:10px;border-radius:3px;background:#E8C547;display:inline-block;flex-shrink:0;"></span>Glucides — ${Math.round(pCarb)}% (${Math.round(tCarb)}g)</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;"><span style="width:10px;height:10px;border-radius:3px;background:#4B6A3E;display:inline-block;flex-shrink:0;"></span>Protéines — ${Math.round(pProt)}% (${Math.round(tProt)}g)</div>
+        <div style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:3px;background:#8E6FB0;display:inline-block;flex-shrink:0;"></span>Lipides — ${Math.round(pFat)}% (${Math.round(tFat)}g)</div>
+      </div>
+    </div>
+  `;
+}
+
+// ---------- Onglets principaux ----------
+document.querySelectorAll('.main-tab').forEach(btn=>{
+  btn.onclick = ()=>{
+    document.querySelectorAll('.main-tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-'+btn.dataset.view).classList.add('active');
+    if(btn.dataset.view==='mesaliments') renderCustomFoodsList();
+  };
+});
+
+document.querySelectorAll('.hydro-buttons button[data-ml]').forEach(btn=>{
+  btn.onclick = ()=> addWater(parseInt(btn.dataset.ml));
+});
+document.getElementById('waterCustomAdd').onclick = ()=>{
+  const val = parseInt(document.getElementById('waterCustomMl').value);
+  if(val>0){ addWater(val); document.getElementById('waterCustomMl').value=''; }
+};
+
+// ---------- "Mes aliments" : liste, édition, suppression ----------
+let editingCustomFoodOriginalName = null;
+function openCustomFoodSheet(food){
+  editingCustomFoodOriginalName = food ? food.name : null;
+  document.getElementById('cfSheetTitle').textContent = food ? "Modifier l'aliment" : 'Nouvel aliment';
+  document.getElementById('cfName').value = food ? food.name : '';
+  document.getElementById('cfKcal').value = food ? food.kcal100 : '';
+  document.getElementById('cfProt').value = food ? food.prot100 : '';
+  document.getElementById('cfCarb').value = food ? food.carb100 : '';
+  document.getElementById('cfFat').value = food ? food.fat100 : '';
+  document.getElementById('cfServing').value = food && food.servingGrams ? food.servingGrams : '';
+  document.getElementById('customFoodOverlay').classList.add('open');
+}
+document.getElementById('openNewCustomFood').onclick = ()=> openCustomFoodSheet(null);
+document.getElementById('closeCustomFoodSheet').onclick = ()=> document.getElementById('customFoodOverlay').classList.remove('open');
+document.getElementById('cfSaveBtn').onclick = async ()=>{
+  const name = document.getElementById('cfName').value.trim();
+  if(!name) return;
+  const list = await loadCustomFoods();
+  const rec = {
+    name,
+    kcal100: parseFloat(document.getElementById('cfKcal').value)||0,
+    prot100: parseFloat(document.getElementById('cfProt').value)||0,
+    carb100: parseFloat(document.getElementById('cfCarb').value)||0,
+    fat100: parseFloat(document.getElementById('cfFat').value)||0,
+    servingGrams: parseFloat(document.getElementById('cfServing').value)||null
+  };
+  let idx = -1;
+  if(editingCustomFoodOriginalName){
+    idx = list.findIndex(f=>f.name.toLowerCase()===editingCustomFoodOriginalName.toLowerCase());
+  } else {
+    idx = list.findIndex(f=>f.name.toLowerCase()===name.toLowerCase());
+  }
+  if(idx>=0) list[idx] = rec; else list.push(rec);
+  await saveCustomFoods(list);
+  document.getElementById('customFoodOverlay').classList.remove('open');
+  renderCustomFoodsList();
+};
+async function renderCustomFoodsList(){
+  const list = await loadCustomFoods();
+  const el = document.getElementById('customFoodsList');
+  list.sort((a,b)=>a.name.localeCompare(b.name));
+  if(list.length===0){
+    el.innerHTML = '<div class="empty-hint">Aucun aliment personnel pour l\'instant — ajoutes-en un, ou passe par la saisie manuelle en enregistrant un repas.</div>';
+    return;
+  }
+  el.innerHTML = list.map(f=>`
+    <div class="cf-row">
+      <div><div class="cf-name">${f.name}</div><div class="cf-meta">${Math.round(f.kcal100)} kcal/100g${f.servingGrams?(' · portion '+f.servingGrams+'g'):''}</div></div>
+      <div class="cf-actions">
+        <button class="edit" data-name="${f.name}">Modifier</button>
+        <button class="del" data-name="${f.name}">🗑</button>
+      </div>
+    </div>
+  `).join('');
+  el.querySelectorAll('.edit').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const list2 = await loadCustomFoods();
+      const f = list2.find(x=>x.name===btn.dataset.name);
+      if(f) openCustomFoodSheet(f);
+    };
+  });
+  el.querySelectorAll('.del').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const list2 = await loadCustomFoods();
+      await saveCustomFoods(list2.filter(x=>x.name!==btn.dataset.name));
+      renderCustomFoodsList();
+    };
+  });
+}
+
 async function render(){
   document.getElementById('curDate').textContent = fmtDate(currentDate);
   const entries = await loadLog();
@@ -436,6 +704,8 @@ async function render(){
   document.getElementById('totProt').textContent = Math.round(tProt)+'g';
   document.getElementById('totCarb').textContent = Math.round(tCarb)+'g';
   document.getElementById('totFat').textContent = Math.round(tFat)+'g';
+  renderMacroChart(tProt, tCarb, tFat);
+  renderHydration();
 
   const mealsDiv = document.getElementById('meals');
   mealsDiv.innerHTML = '';
@@ -614,21 +884,57 @@ async function doSearch(query){
     renderLocalResults(localMatches, resultsEl);
   }
 
-  // 2. Complément en ligne (Open Food Facts) si le réseau le permet
-  statusEl.textContent = localMatches.length
-    ? localMatches.length + ' résultat(s) locaux · recherche en ligne…'
-    : 'Recherche en ligne…';
+  // 1bis. Mes aliments personnels (sauvegardés automatiquement depuis la saisie manuelle)
+  const customFoods = await loadCustomFoods();
+  const q = query.toLowerCase();
+  const customMatches = customFoods.filter(f=>f.name.toLowerCase().includes(q));
+  customMatches.forEach(f=>{
+    const div = document.createElement('div');
+    div.className='result';
+    div.innerHTML = `
+      <span class="r-name">${f.name} <span style="color:var(--green);font-size:10px;">· Mes aliments</span></span>
+      <span class="r-kcal">${Math.round(f.kcal100)} kcal/100g</span>
+    `;
+    const portions = f.servingGrams ? [{label:'1 portion', grams:f.servingGrams}] : null;
+    div.onclick = ()=>selectProduct(f.name, {
+      'energy-kcal_100g': f.kcal100,
+      'proteins_100g': f.prot100,
+      'carbohydrates_100g': f.carb100,
+      'fat_100g': f.fat100
+    }, portions, f.servingGrams);
+    resultsEl.appendChild(div);
+  });
+
+  // 2. Complément en ligne (Open Food Facts) : base française d'abord,
+  // puis repli sur la base mondiale si trop peu de résultats (ex. plats moins courants)
+  const knownCount = localMatches.length + customMatches.length;
+  statusEl.textContent = knownCount ? knownCount + ' résultat(s) locaux · recherche en ligne…' : 'Recherche en ligne…';
+
+  async function fetchOFF(domain){
+    try{
+      const url = `https://${domain}/cgi/search.pl?search_terms=` +
+        encodeURIComponent(query) +
+        '&search_simple=1&action=process&json=1&page_size=10&fields=product_name,nutriments,brands,serving_size';
+      const res = await fetch(url);
+      if(!res.ok) return [];
+      const data = await res.json();
+      return (data.products || []).filter(p =>
+        p.product_name && p.nutriments && p.nutriments['energy-kcal_100g'] != null
+      );
+    }catch(e){
+      return [];
+    }
+  }
+
   try{
-    const url = 'https://fr.openfoodfacts.org/cgi/search.pl?search_terms=' +
-      encodeURIComponent(query) +
-      '&search_simple=1&action=process&json=1&page_size=10&fields=product_name,nutriments,brands,serving_size';
-    const res = await fetch(url);
-    if(!res.ok) throw new Error('network');
-    const data = await res.json();
-    const products = (data.products || []).filter(p =>
-      p.product_name && p.nutriments && p.nutriments['energy-kcal_100g'] != null
-    );
-    products.slice(0,10).forEach(p=>{
+    let products = await fetchOFF('fr.openfoodfacts.org');
+    if(knownCount + products.length < 3){
+      const world = await fetchOFF('world.openfoodfacts.org');
+      world.forEach(w=>{
+        if(!products.some(p=>p.product_name===w.product_name)) products.push(w);
+      });
+    }
+    products.slice(0,12).forEach(p=>{
       const n = p.nutriments;
       const div = document.createElement('div');
       div.className='result';
@@ -637,33 +943,34 @@ async function doSearch(query){
         <span class="r-name">${p.product_name}${brand}</span>
         <span class="r-kcal">${Math.round(n['energy-kcal_100g'])} kcal/100g</span>
       `;
-      let onlinePortions = null;
+      let onlinePortions = null, servingGrams = null;
       if(p.serving_size){
         const m = p.serving_size.match(/([\d.,]+)\s*g/i);
         if(m){
           const grams = parseFloat(m[1].replace(',','.'));
-          if(grams) onlinePortions = [{label:'1 portion (indiquée)', grams: Math.round(grams)}];
+          if(grams){ onlinePortions = [{label:'1 portion (indiquée)', grams: Math.round(grams)}]; servingGrams = Math.round(grams); }
         }
       }
-      div.onclick = ()=>selectProduct(p.product_name, n, onlinePortions);
+      div.onclick = ()=>selectProduct(p.product_name, n, onlinePortions, servingGrams);
       resultsEl.appendChild(div);
     });
-    const total = localMatches.length + products.length;
+    const total = knownCount + products.length;
     statusEl.textContent = total ? total + ' résultat(s) au total' : 'Aucun résultat — essayez la saisie manuelle.';
   }catch(err){
-    statusEl.textContent = localMatches.length
-      ? localMatches.length + ' résultat(s) locaux (recherche en ligne indisponible ici)'
+    statusEl.textContent = knownCount
+      ? knownCount + ' résultat(s) locaux (recherche en ligne indisponible ici)'
       : 'Aucun résultat local, recherche en ligne indisponible — essayez la saisie manuelle.';
   }
 }
 
-function selectProduct(name, n, portions){
+function selectProduct(name, n, portions, servingGrams){
   selectedProduct = {
     name,
     kcal100: n['energy-kcal_100g'] || 0,
     prot100: n['proteins_100g'] || 0,
     carb100: n['carbohydrates_100g'] || 0,
-    fat100: n['fat_100g'] || 0
+    fat100: n['fat_100g'] || 0,
+    servingGrams: servingGrams || (portions && portions[0] && portions[0].grams) || null
   };
   document.getElementById('panelSearch').style.display='none';
   document.getElementById('panelManual').style.display='none';
@@ -675,6 +982,8 @@ function selectProduct(name, n, portions){
     Math.round(selectedProduct.carb100)+'g gluc, '+
     Math.round(selectedProduct.fat100)+'g lip';
   document.getElementById('chosenQty').value = 100;
+  document.getElementById('unitSelect').value = 'g';
+  document.getElementById('unitQty').value = 1;
 
   const portionsEl = document.getElementById('portionButtons');
   portionsEl.innerHTML = '';
@@ -689,6 +998,19 @@ function selectProduct(name, n, portions){
     });
   }
 }
+
+document.getElementById('unitApplyBtn').onclick = ()=>{
+  const unit = document.getElementById('unitSelect').value;
+  const qty = parseFloat(document.getElementById('unitQty').value) || 1;
+  const factors = { g:1, cup:240, tbsp:15, tsp:5 };
+  let grams;
+  if(unit === 'serving'){
+    grams = qty * (selectedProduct && selectedProduct.servingGrams ? selectedProduct.servingGrams : 100);
+  } else {
+    grams = qty * (factors[unit] || 1);
+  }
+  document.getElementById('chosenQty').value = Math.round(grams);
+};
 
 document.getElementById('confirmQtyBtn').onclick = async ()=>{
   const qty = parseFloat(document.getElementById('chosenQty').value) || 0;
@@ -725,6 +1047,17 @@ document.getElementById('manAddBtn').onclick = async ()=>{
   const entries = await loadLog();
   entries.push(entry);
   await saveLog(entries);
+
+  // Sauvegarde automatique dans "Mes aliments" pour ne plus avoir à le retaper
+  if(qty > 0){
+    await upsertCustomFood(name, {
+      kcal100: kcal/qty*100,
+      prot100: prot/qty*100,
+      carb100: carb/qty*100,
+      fat100: fat/qty*100
+    }, qty);
+  }
+
   overlay.classList.remove('open');
   ['manName','manQty','manKcal','manProt','manCarb','manFat'].forEach(id=>{
     document.getElementById(id).value = id==='manQty' ? 100 : '';
